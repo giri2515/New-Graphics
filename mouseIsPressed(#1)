@@ -1,11 +1,19 @@
+let myPicker;
 function setup() {
   createCanvas(400, 400);
-  strokeWeight(4); // 선의 굵기
-  stroke(0, 255, 0); // 선의 색
+  myPicker = createColorPicker(' deeppink'); //임의로 색을 설정할 수 있게하는 함수
+  myPicker.position(0,0); //색을 조정하는 바의 좌표 설정
+  slider = createSlider(1,32); //선의 굵기를 1부터 32까지로 설정할 수 있게 하는 함수
+  slider.position(10,0); //선의 굵기를 조절하는 바의 좌표 설정
+  slider.size(80);
 }
 
 function draw() {
-  if(mouseIsPressed){ //마우스를 클릭하면 선이 나오게하는 함수
+  let c = myPicker.color();
+  let g = slider.value();
+  stroke(c); //선의 색깔을 선언했던 변수값으로 설정함
+  strokeWeight(g); //선의 굵기를 선언했던 변수값으로 설정함
+  if(mouseIsPressed){ //마우스를 누르면 선이 나오게끔 하는 함수.
     line(pmouseX, pmouseY, mouseX, mouseY);
   }
 }

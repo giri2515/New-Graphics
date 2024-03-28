@@ -1,0 +1,11 @@
+function setup() {
+  createCanvas(400, 400);
+  strokeWeight(4); // 선의 굵기
+  stroke(0, 255, 0); // 선의 색
+}
+
+function draw() {
+  if(mouseIsPressed){ //마우스를 클릭하면 선이 나오게하는 함수
+    line(pmouseX, pmouseY, mouseX, mouseY);
+  }
+}

@@ -1,0 +1,20 @@
+let b = 200;
+
+function setup() {
+  createCanvas(400, 400, WEBGL);
+}
+
+function draw() {
+  orbitControl(); // 마우스 클릭에 따라 도형을 회전시킬 수 있는 함수
+  background(220);
+
+  normalMaterial(); // 여러가지 색을 추가해주는 함수
+  box(b);
+}
+
+function keyPressed() { // 특정 키를 누르면 어떤 출력이 생기는 함수
+  if (keyCode === 187 || key === 'q') {
+    b += 10; 
+  } else if (keyCode === 189 || key === 'w') {  
+    b -= 10; }
+}

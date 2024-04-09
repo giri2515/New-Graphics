@@ -1,51 +1,52 @@
-let gameState = 1; // 1: 게임 시작, 2: 게임 종료
 let s;
 let scl = 20;
 let food;
+let speedBoost; // 속도를 증가시키는 아이템
 let playfield = 600;
+let obstacles = []; // 장애물 배열
+let gameStarted = false; // 게임이 시작되었는지 여부를 나타내는 변수
+let speedLevel = 5; // 속도 레벨 (기본값은 5)
+let speedIncrease = 1; // 속도 증가량
 
 function setup() {
   createCanvas(playfield, 640);
   background(51);
-  s = new Snake();
-  frameRate(10);
-  pickLocation();
+  frameRate(10); // 기본 프레임 속도
+  generateObstacles(); // 장애물 생성
+  textAlign(CENTER, CENTER);
+  textSize(32);
+  fill(255);
+  text("게임 시작", width / 2, height / 2);
 }
 
 function draw() {
-  switch (gameState) {
-    case 1:
-      gameStart();
-      break;
-    case 2:
-      gameOver();
-      break;
+  if (gameStarted) {
+    background(51);
+    scoreboard();
+    if (s.eat(food)) {
+      pickLocation();
+    }
+    if (s.eat(speedBoost)) { // 속도를 증가시키는 아이템을 먹으면
+      speedLevel += speedIncrease; // 속도 증가
+      frameRate(speedLevel); // 프레임 속도 재설정
+      pickLocation(); // 새로운 아이템 위치 선택
+    }
+    s.death();
+    s.update();
+    s.show();
+
+    fill(255, 0, 100);
+    rect(food.x, food.y, scl, scl);
+
+    fill(0, 255, 0); // 속도를 증가시키는 아이템 색상 (녹색)
+    rect(speedBoost.x, speedBoost.y, scl, scl);
+
+    // 장애물 그리기
+    for (let i = 0; i < obstacles.length; i++) {
+      fill(255, 0, 0);
+      rect(obstacles[i].x, obstacles[i].y, scl, scl);
+    }
   }
-}
-
-function gameStart() {
-  background(51);
-  scoreboard();
-  if (s.eat(food)) {
-    pickLocation();
-  }
-  s.death();
-  s.update();
-  s.show();
-
-  fill(255, 0, 100);
-  rect(food.x, food.y, scl, scl);
-}
-
-function gameOver() {
-  background(255);
-  fill(0);
-  textAlign(CENTER);
-  textSize(32);
-  text("게임 종료", width / 2, height / 2 - 50);
-  textSize(24);
-  text("점수: " + s.score, width / 2, height / 2);
-  text("최고 점수: " + s.highscore, width / 2, height / 2 + 30);
 }
 
 function pickLocation() {
@@ -54,11 +55,36 @@ function pickLocation() {
   food = createVector(floor(random(cols)), floor(random(rows)));
   food.mult(scl);
 
+  speedBoost = createVector(floor(random(cols)), floor(random(rows)));
+  speedBoost.mult(scl);
+
   for (let i = 0; i < s.tail.length; i++) {
     let pos = s.tail[i];
-    let d = dist(food.x, food.y, pos.x, pos.y);
-    if (d < 1) {
+    let d1 = dist(food.x, food.y, pos.x, pos.y);
+    let d2 = dist(speedBoost.x, speedBoost.y, pos.x, pos.y);
+    if (d1 < 1 || d2 < 1) {
       pickLocation();
+    }
+  }
+}
+
+function generateObstacles() {
+  // 중앙에 큰 십자가 모양의 장애물 생성
+  let centerX = playfield / 2;
+  let centerY = playfield / 2;
+  let crossLength = 200;
+
+  // 수평선 생성
+  for (let x = centerX - crossLength / 2; x <= centerX + crossLength / 2; x += scl) {
+    let obstacle = createVector(x, centerY);
+    obstacles.push(obstacle);
+  }
+
+  // 수직선 생성
+  for (let y = centerY - crossLength / 2; y <= centerY + crossLength / 2; y += scl) {
+    if (y !== centerY) { // 가운데 선은 이미 수평선에서 생성했으므로 제외
+      let obstacle = createVector(centerX, y);
+      obstacles.push(obstacle);
     }
   }
 }
@@ -73,10 +99,47 @@ function scoreboard() {
   text("Highscore: ", 450, 625);
   text(s.score, 70, 625);
   text(s.highscore, 540, 625);
+
+  // 게임 시작 전에 현재 속도 표시
+  if (!gameStarted) {
+    textSize(24);
+    text("선택한 속도: " + speedLevel, width / 2, height / 2 + 50);
+    text("속도 증가량: " + speedIncrease, width / 2, height / 2 + 80);
+  }
+}
+
+function startGame() {
+  gameStarted = true;
+  frameRate(speedLevel); // 선택한 속도로 프레임 속도 설정
+  s = new Snake();
+  pickLocation();
+}
+
+function restartGame() {
+  gameStarted = false;
+  loop(); // 게임 루프 재시작
+  setup(); // 새로운 게임 설정
 }
 
 function keyPressed() {
-  if (gameState === 1) {
+  if (!gameStarted) {
+    // 게임이 시작되지 않은 경우 속도를 변경할 수 있도록 설정
+    if (keyCode === UP_ARROW) { // UP_ARROW 키를 누른 경우 속도 증가량 증가
+      speedIncrease++;
+    } else if (keyCode === DOWN_ARROW) { // DOWN_ARROW 키를 누른 경우 속도 증가량 감소
+      speedIncrease = max(speedIncrease - 1, 1);
+    } else if (keyCode === 69) { // 'e' 키를 누른 경우 게임 시작
+      startGame();
+    }
+    // 속도가 변경되었을 때 속도와 속도 증가량을 다시 표시
+    if (!gameStarted) {
+      textSize(24);
+      fill(255);
+      text("선택한 속도: " + speedLevel, width / 2, height / 2 + 50);
+      text("속도 증가량: " + speedIncrease, width / 2, height / 2 + 80);
+    }
+  } else {
+    // 게임이 시작된 경우에만 Snake의 방향을 변경할 수 있도록 설정
     if (keyCode === UP_ARROW) {
       s.dir(0, -1);
     } else if (keyCode === DOWN_ARROW) {
@@ -89,12 +152,17 @@ function keyPressed() {
   }
 }
 
-function mousePressed() {
-  if (gameState === 2) {
-    gameState = 1; // 게임 다시 시작
-    s = new Snake();
-    loop(); // draw 함수 다시 실행
-  }
+function gameOver() {
+  background(255);
+  fill(0);
+  textAlign(CENTER);
+  textSize(32);
+  text("게임 종료", width / 2, height / 2 - 50);
+  textSize(24);
+  text("점수: " + s.score, width / 2, height / 2);
+  text("최고 점수: " + s.highscore, width / 2, height / 2 + 30);
+  text("마우스를 클릭하여 재시작하세요", width / 2, height / 2 + 100);
+  noLoop();
 }
 
 function Snake() {
@@ -117,11 +185,6 @@ function Snake() {
     if (d < 1) {
       this.total++;
       this.score++;
-      text(this.score, 70, 625);
-      if (this.score > this.highscore) {
-        this.highscore = this.score;
-      }
-      text(this.highscore, 540, 625);
       return true;
     } else {
       return false;
@@ -133,26 +196,45 @@ function Snake() {
       let pos = this.tail[i];
       let d = dist(this.x, this.y, pos.x, pos.y);
       if (d < 1) {
-        gameState = 2; // 게임 종료 상태로 전환
-        return;
+        this.total = 0;
+        this.score = 0;
+        this.tail = [];
+        gameOver();
       }
     }
-    if (this.x >= playfield || this.x < 0 || this.y >= playfield || this.y < 0) {
-      gameState = 2; // 게임 종료 상태로 전환
-      return;
+
+    // Snake가 십자가 모양의 장애물과 충돌하는지 확인
+    for (let i = 0; i < obstacles.length; i++) {
+      let obstacle = obstacles[i];
+      let d = dist(this.x, this.y, obstacle.x, obstacle.y);
+      if (d < 1) {
+        this.total = 0;
+        this.score = 0;
+        this.tail = [];
+        gameOver();
+      }
     }
   };
 
   this.update = function () {
+    // Snake의 꼬리 길이를 제한
     if (this.total === this.tail.length) {
       for (let i = 0; i < this.tail.length - 1; i++) {
         this.tail[i] = this.tail[i + 1];
       }
     }
+
+    // Snake의 머리를 이동
     this.tail[this.total - 1] = createVector(this.x, this.y);
 
     this.x = this.x + this.xspeed * scl;
     this.y = this.y + this.yspeed * scl;
+
+    // 게임 오버 여부를 검사하고, 화면 밖으로 나가면 게임 종료
+    if (this.x >= playfield || this.x < 0 || this.y >= playfield || this.y < 0) {
+      gameOver();
+      return;
+    }
   };
 
   this.show = function () {
@@ -160,6 +242,74 @@ function Snake() {
     for (let i = 0; i < this.tail.length; i++) {
       rect(this.tail[i].x, this.tail[i].y, scl, scl);
     }
+
     rect(this.x, this.y, scl, scl);
   };
+}
+
+function mouseClicked() {
+  if (!gameStarted && mouseX > 0 && mouseX < width && mouseY > 0 && mouseY < height) {
+    startGame();
+  } else if (!gameStarted) {
+    // 게임이 시작되지 않은 상태에서 클릭했을 때는 아무 작업도 하지 않음
+    return;
+  } else {
+    restartGame();
+  }
+} 
+
+function drawShinChan() {
+  push();//얼굴 채우기
+  stroke(255,218,185);
+  fill(255,218,185);
+  rect(200,170,65,60);
+  rect(240,170,50,40);
+  pop();
+  push();//왼쪽 볼, 머리
+  stroke(0);
+  fill(255,218,185);
+  arc(245,170,90,90,PI,0);
+  arc(200,200,70,60,PI/2,PI+PI/2);
+  pop();
+  push();//머리카락
+  noFill();
+  strokeWeight(15);
+  arc(245,170,90,90,PI*(4.6/4),PI/360);
+  pop();
+
+  push();//입 아래쪽 선
+  line(200,230,258,230);
+  pop();
+  push();//귀
+  stroke(0);
+  fill(255,218,185);
+  arc(290,190,34,40,PI+PI/2-6.6,PI/1.93);
+  pop();
+  push();//입
+  fill(255,0,0);
+  ellipse(220,230,10,20);
+  pop();
+  push();//턱오른쪽
+  stroke(0);
+  fill(255,218,185);
+  arc(258,210,60,40,0,PI/2);
+  pop();
+  push();//눈썹
+  stroke(50);
+  noFill();
+  strokeWeight(8);
+  bezier(200,155,215,140,215,140,230,155);
+  bezier(245,155,260,140,260,140,275,155);
+  strokeWeight(2);
+  bezier(200,165,215,155,215,155,230,165);
+  bezier(245,165,260,155,260,155,275,165);
+  pop();
+  push();//눈
+  fill(0);
+  ellipse(220,178,20,20);
+  ellipse(253,178,20,20);
+  fill(255);
+  ellipse(220,178,9,9);
+  ellipse(253,178,9,9);
+  pop();
 }

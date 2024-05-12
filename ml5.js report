@@ -1,0 +1,69 @@
+html 코드 
+------------------------------
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cute Pikachu with p5.js and ml5.js</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ml5/1.0.0/ml5.min.js"></script>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    canvas {
+      border: 2px solid black;
+    }
+  </style>
+</head>
+<body>
+  <script src="sketch.js"></script>
+</body>
+</html>
+--------------------------------------------
+
+let classifier;
+let pikachuImage;
+
+function preload() {
+  // ml5.js Image Classifier 모델 로드
+  classifier = ml5.imageClassifier('');
+  // 피카츄 이미지 로드
+  pikachuImage = loadImage('pikachu.png');
+}
+
+function setup() {
+  createCanvas(400, 400);
+  // 피카츄 이미지 표시
+  image(pikachuImage, 0, 0, width, height);
+}
+
+function draw() {
+  // 이미지 분류 시작
+  classifier.classify(pikachuImage, gotResult);
+}
+
+function gotResult(error, results) {
+  if (error) {
+    console.error(error);
+    return;
+  }
+  
+  // 분류 결과 표시
+  console.log(results);
+  let label = results[0].label;
+  let confidence = nf(results[0].confidence * 100, 2, 2);
+  fill(255);
+  textSize(20);
+  textAlign(CENTER);
+  text(`I'm ${confidence}% sure it's a ${label}`, width/2, height-20);
+}
+-------------------------------------------------------------
+
+ml5에 대한 지식이 조금 부족한 것 같아 gpt의 도움을 좀 많이 받았습니다.
+html을 수정해서 피카츄를 보이게끔 해보았습니다.

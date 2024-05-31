@@ -1,0 +1,107 @@
+/**************************
+ * Includes
+ *
+ **************************/
+
+#include <windows.h>
+#include <freeglut.h> // freeglut.h 사용
+
+/**************************
+ * Function Declarations
+ *
+ **************************/
+
+void renderScene();
+void resize(int width, int height);
+
+/**************************
+ * Main Function
+ *
+ **************************/
+
+int main(int argc, char** argv)
+{
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+    glutInitWindowSize(800, 600);
+    glutCreateWindow("OpenGL Pyramid");
+    glutDisplayFunc(renderScene);
+    glutReshapeFunc(resize);
+    glutIdleFunc(renderScene); // Set the function to be called when no other events are happening
+    glEnable(GL_DEPTH_TEST); // Enable depth testing for 3D
+    glutMainLoop();
+    return 0;
+}
+
+/**************************
+ * Rendering Function
+ *
+ **************************/
+
+void renderScene()
+{
+    static float theta = 0.0f; // Declare theta as a static variable to retain its value across function calls
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glTranslatef(0.0f, -1.0f, -6.0f); // Adjust the pyramid position
+    glRotatef(theta, 0.0f, 1.0f, 0.0f); // Rotate around y-axis
+
+    // Draw pyramid
+    glBegin(GL_TRIANGLES);
+    
+    // Front face
+    glColor3f(1.0f, 0.0f, 0.0f); // Red
+    glVertex3f( 0.0f, 1.0f, 0.0f);
+    glVertex3f(-1.0f, -1.0f, 1.0f);
+    glVertex3f( 1.0f, -1.0f, 1.0f);
+    
+    // Right face
+    glColor3f(0.0f, 1.0f, 0.0f); // Green
+    glVertex3f( 0.0f, 1.0f, 0.0f);
+    glVertex3f( 1.0f, -1.0f, 1.0f);
+    glVertex3f( 1.0f, -1.0f, -1.0f);
+    
+    // Back face
+    glColor3f(0.0f, 0.0f, 1.0f); // Blue
+    glVertex3f( 0.0f, 1.0f, 0.0f);
+    glVertex3f( 1.0f, -1.0f, -1.0f);
+    glVertex3f(-1.0f, -1.0f, -1.0f);
+    
+    // Left face
+    glColor3f(1.0f, 1.0f, 0.0f); // Yellow
+    glVertex3f( 0.0f, 1.0f, 0.0f);
+    glVertex3f(-1.0f, -1.0f, -1.0f);
+    glVertex3f(-1.0f, -1.0f, 1.0f);
+    
+    glEnd();
+
+    // Draw base of the pyramid
+    glBegin(GL_QUADS);
+    glColor3f(1.0f, 0.0f, 1.0f); // Magenta
+    glVertex3f(-1.0f, -1.0f, 1.0f);
+    glVertex3f( 1.0f, -1.0f, 1.0f);
+    glVertex3f( 1.0f, -1.0f, -1.0f);
+    glVertex3f(-1.0f, -1.0f, -1.0f);
+    glEnd();
+
+    glutSwapBuffers();
+
+    theta += 0.5f; // Increase theta for rotation
+}
+
+/**************************
+ * Resizing Function
+ *
+ **************************/
+
+void resize(int width, int height)
+{
+    glViewport(0, 0, width, height);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f); // Set up a perspective projection
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+}
